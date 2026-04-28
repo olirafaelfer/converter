@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Defense Console</title>
+<style>body{font-family:Inter,Segoe UI,Arial,sans-serif;background:#07101d;color:#edf4ff;margin:0}.wrap{width:min(1200px,calc(100% - 32px));margin:auto;padding:28px 0}.card{border:1px solid #2d3a50;background:#101a2b;border-radius:20px;margin:14px 0;overflow:hidden}.head{padding:16px;border-bottom:1px solid #2d3a50;display:flex;justify-content:space-between}.body{padding:16px}.btn,a{background:#ffffff12;border:1px solid #2d3a50;color:#edf4ff;border-radius:12px;padding:9px 12px;text-decoration:none;cursor:pointer}textarea{width:100%;min-height:240px;background:#020814;color:#e8eefc;border:1px solid #2d3a50;border-radius:14px;padding:12px}pre{white-space:pre-wrap;background:#020814;padding:14px;border-radius:14px;overflow:auto}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.risk{padding:10px;border-radius:12px;background:#ffffff0b;margin:8px 0}.risk.high{border-left:5px solid #ff6b7d}.risk.medium{border-left:5px solid #ffd166}.risk.low{border-left:5px solid #56d88a}@media(max-width:900px){.grid{grid-template-columns:1fr}}</style>
+</head><body><div class="wrap">
+<div class="head"><h1>Defense Console</h1><a href="/">Voltar ao Auditor</a></div>
+<div class="card"><div class="head"><b>Resumo</b><button id="loadLearning" class="btn">Ver aprendizado</button></div><div class="body"><p>Use esta página para transformar relatórios do Hunter/Cookie Audit em ações defensivas. Tokens assinados devem aparecer redigidos; a correção deve ser feita no servidor/CDN.</p><div id="learning"></div></div></div>
+<div class="grid">
+<div class="card"><div class="head"><b>Colar relatório JSON</b></div><div class="body"><textarea id="json" placeholder="Cole full-url-hunter.json, cookie-audit.json ou defense-report.json"></textarea><br><br><button id="analyze" class="btn">Analisar relatório colado</button></div></div>
+<div class="card"><div class="head"><b>Recomendações</b></div><div class="body" id="out"><div class="risk low">Aguardando relatório.</div></div></div>
+</div>
+<div class="card"><div class="head"><b>Checklist base para seus sites</b></div><div class="body"><pre>1. Nunca exponha URL full no HTML/JS para usuário sem permissão.
+2. Gere signed URL server-side somente após validar usuário, plano e vídeo.
+3. Assine path exato, expiração curta e, quando possível, sessão/usuário.
+4. Proteja segmentos HLS; não proteja só o manifesto.
+5. Configure cookies sensíveis com Secure, HttpOnly e SameSite adequado.
+6. Bloqueie listagem pública de storage/CDN.
+7. Evite padrões previsíveis de full video, como YYYYMMDD-video-full.mp4 sem controle.
+8. Monitore download anômalo, muitas qualidades e muitos segmentos em sequência.
+9. Teste anonimamente cada release antes de publicar.
+10. Não confie em Referer/Origin como única proteção.</pre></div></div>
+</div><script>
+const $=s=>document.querySelector(s);function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+$('#analyze').onclick=()=>{let d;try{d=JSON.parse($('#json').value)}catch(e){$('#out').innerHTML='<div class="risk high">JSON inválido.</div>';return}const rec=[];const signed=(d.signedExposures||d.candidates?.filter(x=>x.finding==='signed-url-exposed')||[]).length;const critical=d.summary?.critical||0;const cookies=d.cookies||[];if(signed)rec.push(['high',`Foram detectadas ${signed} URLs assinadas expostas. Garanta que só usuários autorizados recebam URLs full e reduza TTL.`]);if(critical)rec.push(['high',`${critical} candidato(s) abriram como vídeo em modo sem cookies/anônimo. Corrigir CDN/storage imediatamente.`]);const badCookies=cookies.filter(c=>(c.risks||[]).length);if(badCookies.length)rec.push(['medium',`${badCookies.length} cookie(s) com risco: ${badCookies.map(c=>c.name).join(', ')}.`]);if(!rec.length)rec.push(['low','Nenhuma falha crítica óbvia no relatório colado. Revise manualmente os candidatos e endpoints sensíveis.']);$('#out').innerHTML=rec.map(([lvl,msg])=>`<div class="risk ${lvl}">${esc(msg)}</div>`).join('')+'<pre>'+esc(JSON.stringify(d.summary||d.counts||{},null,2))+'</pre>';};
+$('#loadLearning').onclick=async()=>{const r=await fetch('/api/learning');const j=await r.json();$('#learning').innerHTML='<pre>'+esc(JSON.stringify(j,null,2).slice(0,12000))+'</pre>';};
+</script></body></html>

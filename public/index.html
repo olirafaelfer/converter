@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HLS Media Auditor v10 Defense</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    :root{--bg:#070b14;--card:#111827;--card2:#172033;--line:#2b3548;--text:#e8eefc;--muted:#93a4bd;--accent:#64e7ff;--ok:#56d88a;--warn:#ffd166;--danger:#ff6b7d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#123047,transparent 36rem),var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}.wrap{width:min(1500px,calc(100% - 28px));margin:auto;padding:24px 0 48px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:stretch;margin-bottom:16px}.card{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid var(--line);border-radius:22px;box-shadow:0 20px 60px #0006;overflow:hidden}.intro{padding:22px;flex:1}.intro h1{margin:0 0 8px;font-size:34px}.intro p{margin:0;color:var(--muted)}.nav{display:flex;gap:8px;align-items:center;padding:18px}.nav a,.smallBtn{color:var(--text);text-decoration:none;border:1px solid var(--line);background:#ffffff12;padding:9px 12px;border-radius:12px;cursor:pointer}.toolbar{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;margin-bottom:16px}.toolbar input,.field{height:48px;border:1px solid var(--line);background:#0004;color:var(--text);border-radius:14px;padding:0 13px;width:100%}.btn{height:48px;border:0;border-radius:14px;padding:0 16px;background:linear-gradient(135deg,var(--accent),#9fffbf);font-weight:900;color:#061018;cursor:pointer}.btn:disabled{opacity:.5;cursor:not-allowed}.grid{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:16px}.sectionTitle{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);background:#ffffff08}.sectionTitle h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;margin:0;color:#c9d6ff}.console{height:620px;overflow:auto;background:#02050b;padding:10px;font-family:Consolas,monospace;font-size:12px;line-height:1.4}.log{padding:5px;border-bottom:1px solid #ffffff0a;word-break:break-word}.log .time{color:#64748b}.log.info .level{color:var(--accent)}.log.warn .level{color:var(--warn)}.log.error .level{color:var(--danger)}.log.media .level,.log.ok .level{color:var(--ok)}video{width:100%;aspect-ratio:16/9;background:#000;display:block}.now{padding:10px 12px;color:var(--muted);font-size:12px;word-break:break-all;border-top:1px solid var(--line)}.buttons{display:flex;flex-wrap:wrap;gap:8px;padding:12px}.results{padding:12px;display:grid;gap:9px;max-height:410px;overflow:auto}.item{display:grid;grid-template-columns:74px 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:15px;background:#ffffff08}.badge{font-size:11px;text-align:center;border-radius:999px;padding:7px;color:#081018;background:#84f0ff;font-weight:900;text-transform:uppercase}.badge.signed{background:#ffd166}.url{font-size:12px;color:var(--muted);word-break:break-all}.panel{padding:12px;display:grid;gap:10px}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.muted{color:var(--muted)}.reportLinks a{color:var(--accent);margin-right:10px}.empty{padding:16px;color:var(--muted)}@media(max-width:980px){.grid,.hero,.toolbar,.split{grid-template-columns:1fr;display:grid}.console{height:360px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="card intro"><h1>HLS Media Auditor v10 Defense</h1><p>Auditoria local para seus próprios sites: mídia, cookies, HLS, Full URL Hunter, aprendizado simples e relatório de defesa.</p></div>
+    <div class="card nav"><a href="/defense">Página de Defesa</a><button id="resetLearning" class="smallBtn">Resetar aprendizado</button></div>
+  </div>
+  <div class="card toolbar"><input id="url" value="https://www.watch4beauty.com/updates/new-toy" placeholder="URL da página"><button id="analyze" class="btn">Analisar</button></div>
+  <div class="grid">
+    <main>
+      <div class="card">
+        <div class="sectionTitle"><h2>Preview seguro</h2><span id="sessionBadge" class="muted">sem sessão</span></div>
+        <video id="video" controls muted playsinline></video><div id="now" class="now">Nenhuma mídia carregada.</div>
+        <div class="buttons">
+          <button id="cookieAudit" class="smallBtn">Auditar cookies</button>
+          <button id="accessAudit" class="smallBtn">Testar acessos</button>
+          <button id="resolveHls" class="smallBtn">Resolver HLS</button>
+          <button id="fullLeak" class="smallBtn">Auditar full/403</button>
+          <button id="hunter" class="smallBtn">Full URL Hunter</button>
+          <button id="defense" class="smallBtn">Gerar defesa</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="sectionTitle"><h2>Full / Hunter</h2><span class="muted">tokens redigidos</span></div>
+        <div class="panel">
+          <input id="knownFull" class="field" placeholder="URL full conhecida sem token, opcional">
+          <input id="authorized" class="field" placeholder="URL autorizada para comparação local, opcional — será redigida e não testada nesta versão">
+          <div id="reports" class="reportLinks muted">Relatórios aparecerão aqui.</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="sectionTitle"><h2>Mídias encontradas</h2><span id="count" class="muted">0</span></div>
+        <div id="results" class="results"><div class="empty">Rode uma análise.</div></div>
+      </div>
+    </main>
+    <aside class="card"><div class="sectionTitle"><h2>Console</h2><button id="clear" class="smallBtn">Limpar</button></div><div id="console" class="console"></div></aside>
+  </div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const els = {url:$('#url'), analyze:$('#analyze'), results:$('#results'), console:$('#console'), video:$('#video'), now:$('#now'), sessionBadge:$('#sessionBadge'), count:$('#count'), reports:$('#reports'), knownFull:$('#knownFull'), authorized:$('#authorized')};
+let state = {sessionId:null, data:null, hls:null, events:null, selected:null};
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function log(level,msg,extra={}){const d=document.createElement('div');d.className='log '+level;d.innerHTML=`<span class="time">${new Date().toLocaleTimeString()}</span> <span class="level">[${esc(level)}]</span> ${esc(msg||'')}${extra.url?' — '+esc(extra.url):''}`;els.console.appendChild(d);els.console.scrollTop=els.console.scrollHeight;}
+function linkReports(obj){if(!obj||!obj.files)return;els.reports.innerHTML=`<a target="_blank" href="${obj.files.html}">HTML</a><a target="_blank" href="${obj.files.json}">JSON</a>`;}
+function connectEvents(id){if(state.events)state.events.close();state.events=new EventSource('/api/events?session='+encodeURIComponent(id));state.events.onmessage=e=>{try{const d=JSON.parse(e.data);log(d.level||'info',d.message||'',d)}catch{}};}
+async function post(url, body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});const t=await r.text();let j;try{j=JSON.parse(t)}catch{throw new Error(t.slice(0,400))}if(!r.ok)throw new Error(j.error||'Erro');return j;}
+$('#analyze').onclick=async()=>{els.analyze.disabled=true;try{log('info','Iniciando análise: '+els.url.value);const data=await post('/api/analyze',{url:els.url.value});state.data=data;state.sessionId=data.sessionId;els.sessionBadge.textContent='sessão '+data.sessionId;connectEvents(data.sessionId);render(data);log('info','Análise concluída.');}catch(e){log('error',e.message)}finally{els.analyze.disabled=false}};
+function render(data){const items=(data.found&&data.found.all)||[];els.count.textContent=items.length;els.results.innerHTML='';if(!items.length){els.results.innerHTML='<div class="empty">Nenhuma mídia.</div>';return;}for(const item of items){const row=document.createElement('div');row.className='item';const url=item.displayUrl||item.url;row.innerHTML=`<div class="badge ${item.signed?'signed':''}">${esc(item.signed?'signed':item.type)}</div><div class="url"><b>${esc((item.sources||[]).slice(0,2).join(', ')||'capturado')}</b><br>${esc(url)}</div><div></div>`;const actions=row.lastElementChild;if(item.proxyUrl&&item.playable){const b=document.createElement('button');b.className='smallBtn';b.textContent='Play';b.onclick=()=>play(item);actions.appendChild(b);}if(item.type==='hls'&&!item.signed){const b=document.createElement('button');b.className='smallBtn';b.textContent='HLS';b.onclick=()=>resolveOne(item.url);actions.appendChild(b);}row.onclick=()=>state.selected=item;els.results.appendChild(row);}const first=items.find(i=>i.playable&&i.proxyUrl);if(first)play(first);}
+function play(item){state.selected=item;if(!item.proxyUrl){log('warn','Sem proxy seguro para esta mídia.');return;}if(state.hls){try{state.hls.destroy()}catch{}state.hls=null;}els.now.textContent=item.displayUrl||item.url;els.video.pause();els.video.removeAttribute('src');els.video.load();if(item.type==='hls'&&window.Hls&&Hls.isSupported()){state.hls=new Hls({enableWorker:true});state.hls.on(Hls.Events.ERROR,(_,d)=>log(d.fatal?'error':'warn','HLS: '+d.type+' / '+d.details));state.hls.on(Hls.Events.MANIFEST_PARSED,()=>els.video.play().catch(e=>log('warn',e.message)));state.hls.loadSource(item.proxyUrl);state.hls.attachMedia(els.video);}else{els.video.src=item.proxyUrl;els.video.play().catch(e=>log('warn',e.message));}}
+async function resolveOne(url){try{const r=await post('/api/hls/resolve',{sessionId:state.sessionId,url});linkReports(r);log(r.success?'ok':'warn','Resolver HLS concluído.')}catch(e){log('error',e.message)}}
+$('#cookieAudit').onclick=async()=>{try{const r=await post('/api/cookie-audit',{sessionId:state.sessionId});linkReports(r);log('ok','Cookie Audit gerado.')}catch(e){log('error',e.message)}};
+$('#accessAudit').onclick=async()=>{try{const r=await post('/api/access-audit',{sessionId:state.sessionId});linkReports(r);log('ok','Access Audit gerado.')}catch(e){log('error',e.message)}};
+$('#resolveHls').onclick=async()=>{const h=state.selected&&state.selected.type==='hls'?state.selected.url:((state.data?.found?.hls||[])[0]||{}).url;if(!h)return log('warn','Nenhum HLS selecionado.');await resolveOne(h)};
+$('#fullLeak').onclick=async()=>{try{const r=await post('/api/full-leak-audit',{sessionId:state.sessionId,knownFullUrl:els.knownFull.value,authorizedUrl:els.authorized.value});linkReports(r);log('ok','Full/403 Audit gerado.')}catch(e){log('error',e.message)}};
+$('#hunter').onclick=async()=>{try{const r=await post('/api/full-url-hunter',{sessionId:state.sessionId,knownFullUrl:els.knownFull.value});linkReports(r);log('ok',`Full URL Hunter: ${r.summary?.candidates||0} candidatos, ${r.summary?.signedExposures||0} exposições assinadas.`)}catch(e){log('error',e.message)}};
+$('#defense').onclick=async()=>{try{const r=await post('/api/defense/report',{sessionId:state.sessionId});linkReports(r);log('ok','Relatório de defesa gerado.')}catch(e){log('error',e.message)}};
+$('#resetLearning').onclick=async()=>{try{await post('/api/learning/reset',{});log('ok','Aprendizado resetado.')}catch(e){log('error',e.message)}};
+$('#clear').onclick=()=>els.console.innerHTML='';
+log('info','Servidor pronto.');
+</script>
+</body>
+</html>

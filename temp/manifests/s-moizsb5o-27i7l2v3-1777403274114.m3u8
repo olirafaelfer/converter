@@ -1,0 +1,15 @@
+#EXTM3U
+#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=426x240
+http://localhost:3000/api/proxy?session=s-moizsb5o-27i7l2v3&url=https%3A%2F%2Fmh-c75c2d6726.watch4beauty.com%2Fproduction%2F20260428-video-preview%2F240%2Fstream.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=1000000,RESOLUTION=640x360
+http://localhost:3000/api/proxy?session=s-moizsb5o-27i7l2v3&url=https%3A%2F%2Fmh-c75c2d6726.watch4beauty.com%2Fproduction%2F20260428-video-preview%2F360%2Fstream.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=2400000,RESOLUTION=854x480
+http://localhost:3000/api/proxy?session=s-moizsb5o-27i7l2v3&url=https%3A%2F%2Fmh-c75c2d6726.watch4beauty.com%2Fproduction%2F20260428-video-preview%2F480%2Fstream.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=5000000,RESOLUTION=1280x720
+http://localhost:3000/api/proxy?session=s-moizsb5o-27i7l2v3&url=https%3A%2F%2Fmh-c75c2d6726.watch4beauty.com%2Fproduction%2F20260428-video-preview%2F720%2Fstream.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=9600000,RESOLUTION=1920x1080
+http://localhost:3000/api/proxy?session=s-moizsb5o-27i7l2v3&url=https%3A%2F%2Fmh-c75c2d6726.watch4beauty.com%2Fproduction%2F20260428-video-preview%2F1080%2Fstream.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=16000000,RESOLUTION=2560x1440
+http://localhost:3000/api/proxy?session=s-moizsb5o-27i7l2v3&url=https%3A%2F%2Fmh-c75c2d6726.watch4beauty.com%2Fproduction%2F20260428-video-preview%2F1440%2Fstream.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=35000000,RESOLUTION=3840x2160
+http://localhost:3000/api/proxy?session=s-moizsb5o-27i7l2v3&url=https%3A%2F%2Fmh-c75c2d6726.watch4beauty.com%2Fproduction%2F20260428-video-preview%2F2160%2Fstream.m3u8
