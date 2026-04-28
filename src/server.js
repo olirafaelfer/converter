@@ -149,10 +149,20 @@ function addLog(session, level, message, extra = {}) {
   }
 }
 
+
+function hasTemplatePlaceholders(url) {
+  const raw = String(url || '');
+  if (!raw) return false;
+  const decoded = (() => {
+    try { return decodeURIComponent(raw); } catch { return raw; }
+  })();
+  return /\{[a-z0-9_-]+\}/i.test(decoded) || /%7b[a-z0-9_-]+%7d/i.test(raw);
+}
+
 function classifyMedia(url, contentType = '') {
   const clean = String(url || '').split('?')[0].toLowerCase();
   const ct = String(contentType || '').toLowerCase();
-  if (isJunkUrl(url)) return null;
+  if (isJunkUrl(url) || hasTemplatePlaceholders(url)) return null;
   if (clean.endsWith('.m3u8') || ct.includes('mpegurl')) return 'hls';
   if (clean.endsWith('.mpd') || ct.includes('dash+xml')) return 'dash';
   if (clean.endsWith('.ts') || ct.includes('mp2t')) return 'segment';
@@ -209,12 +219,12 @@ function extractUrlsFromText(text, base, source = 'text') {
   const keys = decoded.match(/(?:file|src|url|source|video|downloadUrl|fullUrl|mediaUrl|hls|mp4)\s*[:=]\s*["']([^"']+)["']/gi) || [];
   for (const item of absolute.concat(relative)) {
     const u = normalizeUrl(item, base);
-    if (u && !isJunkUrl(u)) out.set(u, { url: u, source });
+    if (u && !isJunkUrl(u) && !hasTemplatePlaceholders(u)) out.set(u, { url: u, source });
   }
   for (const item of keys) {
     const m = /["']([^"']+)["']/.exec(item);
     const u = m && normalizeUrl(m[1], base);
-    if (u && !isJunkUrl(u)) out.set(u, { url: u, source: `${source}:kv` });
+    if (u && !isJunkUrl(u) && !hasTemplatePlaceholders(u)) out.set(u, { url: u, source: `${source}:kv` });
   }
   return [...out.values()];
 }
@@ -656,7 +666,7 @@ function collectHunterSources(session) {
   const candidates = [];
   const push = (url, source, reason = '') => {
     const u = normalizeUrl(url, session.finalUrl || session.pageUrl);
-    if (!u || isJunkUrl(u)) return;
+    if (!u || isJunkUrl(u) || hasTemplatePlaceholders(u)) return;
     candidates.push({ url: u, source, reason, signed: containsSignedParams(u), fullish: isFullishUrl(u) });
   };
   for (const m of session.media.values()) push(m.url, `media:${(m.sources || []).join(',')}`, 'found-media');
@@ -670,7 +680,7 @@ function generateFullCandidates(session, knownFull) {
   const out = new Map();
   const add = (url, source, reason) => {
     const u = normalizeUrl(url, session.finalUrl || session.pageUrl);
-    if (u && !isJunkUrl(u)) out.set(u, { url: u, source, reason, signed: containsSignedParams(u), fullish: isFullishUrl(u) });
+    if (u && !isJunkUrl(u) && !hasTemplatePlaceholders(u)) out.set(u, { url: u, source, reason, signed: containsSignedParams(u), fullish: isFullishUrl(u) });
   };
   if (knownFull) add(knownFull, 'user-known-full', 'known-full');
   for (const c of collectHunterSources(session)) add(c.url, c.source, c.reason);
