@@ -219,6 +219,15 @@ function extractUrlsFromText(text, base, source = 'text') {
   return [...out.values()];
 }
 
+
+function allowSignedMedia() {
+  return String(process.env.ALLOW_SIGNED_MEDIA || '').toLowerCase() === 'true';
+}
+
+function shouldBlockSignedMedia() {
+  return !allowSignedMedia();
+}
+
 function containsSignedParams(url) {
   try {
     const parsed = new URL(url);
@@ -281,7 +290,7 @@ async function fetchWithSession(session, targetUrl, opts = {}) {
 }
 
 async function safeFetchTest(session, url, mode = {}) {
-  if (containsSignedParams(url)) {
+  if (shouldBlockSignedMedia() && containsSignedParams(url)) {
     return { url: redactUrl(url), status: 'skipped', skipped: true, reason: 'signed-url-redacted-not-tested', ok: false };
   }
   const controller = new AbortController();
@@ -568,7 +577,7 @@ function serializeSession(session) {
     ...item,
     displayUrl: containsSignedParams(item.url) ? redactUrl(item.url) : item.url,
     signed: containsSignedParams(item.url),
-    proxyUrl: containsSignedParams(item.url) ? null : mediaProxyUrl(session, item.url),
+    proxyUrl: shouldBlockSignedMedia() && containsSignedParams(item.url) ? null : mediaProxyUrl(session, item.url),
   }));
   return { success: true, sessionId: session.id, pageUrl: session.pageUrl, finalUrl: session.finalUrl, found: { all: media, video: media.filter(m => m.playable), hls: media.filter(m => m.type === 'hls'), images: media.filter(m => m.type === 'image') }, networkCount: session.network.length, logs: session.logs.slice(-250) };
 }
@@ -623,7 +632,7 @@ async function accessAudit(session) {
   const media = [...session.media.values()].filter(m => ['hls', 'mp4', 'webm', 'mov', 'image'].includes(m.type)).slice(0, 80);
   const results = [];
   for (const item of media) {
-    if (containsSignedParams(item.url)) {
+    if (shouldBlockSignedMedia() && containsSignedParams(item.url)) {
       results.push({ label: `${item.type}: URL assinada detectada`, url: redactUrl(item.url), skipped: true, reason: 'signed-url-redacted-not-tested' });
       continue;
     }
@@ -736,7 +745,8 @@ async function fullLeakAudit(session, options = {}) {
     for (const [mode, opts] of [['with-session', { cookies: true, referer: true }], ['anonymous', { cookies: false, referer: false }]]) tests.push({ target: 'known-full', mode, ...(await safeFetchTest(session, known, opts)) });
   }
   if (authorized) {
-    tests.push({ target: 'authorized-url', url: redactUrl(authorized), skipped: true, reason: 'authorized signed URL redacted and not tested in defense release' });
+    if (shouldBlockSignedMedia() && containsSignedParams(authorized)) tests.push({ target: 'authorized-url', url: redactUrl(authorized), skipped: true, reason: 'authorized signed URL redacted and not tested in defense release' });
+    else for (const [mode, opts] of [['with-session', { cookies: true, referer: true }], ['anonymous', { cookies: false, referer: false }]]) tests.push({ target: 'authorized-url', mode, ...(await safeFetchTest(session, authorized, opts)) });
   }
   const exposed = collectHunterSources(session).filter(c => containsSignedParams(c.url)).map(c => ({ redactedUrl: redactUrl(c.url), source: c.source, reason: c.reason, fullish: isFullishUrl(c.url) }));
   const report = { generatedAt: new Date().toISOString(), pageUrl: session.pageUrl, finalUrl: session.finalUrl, tests, signedExposures: exposed };
@@ -780,7 +790,7 @@ function parseM3u8(text, baseUrl) {
 async function hlsResolve(session, url) {
   const target = normalizeUrl(url, session.finalUrl || session.pageUrl);
   if (!target) throw new Error('URL HLS inválida.');
-  if (containsSignedParams(target)) return { success: false, skipped: true, reason: 'signed-url-redacted-not-resolved', url: redactUrl(target) };
+  if (shouldBlockSignedMedia() && containsSignedParams(target)) return { success: false, skipped: true, reason: 'signed-url-redacted-not-resolved', url: redactUrl(target) };
   const res = await fetchWithSession(session, target, { accept: 'application/vnd.apple.mpegurl,application/x-mpegURL,*/*' });
   const text = await res.text();
   if (!res.ok) return { success: false, status: res.status, contentType: res.headers.get('content-type') || '', url: target, message: text.slice(0, 500) };
@@ -795,7 +805,7 @@ async function proxyHandler(req, res) {
   const targetUrl = String(req.query.url || '');
   if (!session) return res.status(404).send('Sessão não encontrada.');
   if (!targetUrl) return res.status(400).send('URL ausente.');
-  if (containsSignedParams(targetUrl)) return res.status(403).send('URL assinada detectada; proxy bloqueado nesta versão de defesa.');
+  if (shouldBlockSignedMedia() && containsSignedParams(targetUrl)) return res.status(403).send('URL assinada detectada; proxy bloqueado nesta versão de defesa. Defina ALLOW_SIGNED_MEDIA=true para compatibilidade.');
   try { session.allowedHosts.add(new URL(targetUrl).hostname); } catch {}
   try {
     const upstream = await fetchWithSession(session, targetUrl, { range: req.headers.range, accept: req.headers.accept || '*/*' });
@@ -820,7 +830,7 @@ async function proxyHandler(req, res) {
   }
 }
 
-app.get('/api/health', (_, res) => res.json({ ok: true, version: '10.0.0-defense', port: PORT, sessions: sessions.size, latestSessionId, puppeteer: '24.x', learningDb: fs.existsSync(LEARNING_DB) }));
+app.get('/api/health', (_, res) => res.json({ ok: true, version: '10.0.1-defense', port: PORT, sessions: sessions.size, latestSessionId, puppeteer: '24.x', learningDb: fs.existsSync(LEARNING_DB), allowSignedMedia: allowSignedMedia() }));
 app.post('/api/analyze', async (req, res) => { try { res.json(await analyzeUrl(req.body.url)); } catch (e) { res.status(500).json({ success: false, error: e.message }); } });
 app.post('/analyze', async (req, res) => { try { res.json(await analyzeUrl(req.body.url)); } catch (e) { res.status(500).json({ success: false, error: e.message }); } });
 app.get('/api/events', (req, res) => {
@@ -850,7 +860,7 @@ app.get('/proxy', proxyHandler);
 app.listen(PORT, async () => {
   const browser = await getBrowser();
   const url = `http://localhost:${PORT}`;
-  console.log(`HLS Media Auditor v10 Defense: ${url}`);
+  console.log(`HLS Media Auditor v10 Defense: ${url} | signed media ${allowSignedMedia() ? 'enabled' : 'blocked'}`);
   if (process.env.AUTO_OPEN !== 'false') {
     try { const page = await browser.newPage(); await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 }); }
     catch { exec(process.platform === 'win32' ? `start chrome ${url}` : process.platform === 'darwin' ? `open ${url}` : `xdg-open ${url}`, () => {}); }
